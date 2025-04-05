@@ -115,7 +115,7 @@ watch(
             <div class="text-sm">
               <a
                 href="#"
-                class="text-indigo-600 font-semibold hover:text-indigo-500"
+                class="text-amber-600 font-semibold hover:text-red-600"
               >Forgot password?</a>
             </div>
           </div>
@@ -136,11 +136,11 @@ watch(
         </div>
 
         <div class="flex flex-col gap-2">
-          <button type="submit" class="button primary w-full">
+          <button type="submit" class="button primary w-full bg-gradient-to-r from-amber-600 to-red-600 text-white hover:from-amber-700 hover:to-red-700">
             Sign in
           </button>
 
-          <router-link to="/register" class="button outlined w-full">
+          <router-link to="/register" class="button outlined w-full border-amber-600 text-amber-600 hover:bg-amber-50">
             Register
           </router-link>
         </div>
