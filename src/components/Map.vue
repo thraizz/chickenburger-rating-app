@@ -191,12 +191,13 @@ onMounted(() => {
                     >
                       Rate This Place
                     </button>
-                    <button 
-                      onclick="window.location.href='https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${store.address}`)}"
+                    <a
+                      href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${store.address}`)}"
+                      target="_blank"
                       class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200"
                     >
                       Directions
-                    </button>
+                    </a>
                   </div>
                 </div>
               `);
