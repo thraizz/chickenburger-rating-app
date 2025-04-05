@@ -1,16 +1,23 @@
 <script setup lang="ts">
 import GoogleSSO from '@/components/GoogleSSO.vue';
-import { logInWithFirebase, useUser } from '@/user';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useField, useForm } from 'vee-validate';
 import { watch } from 'vue';
 
 import { useRouter } from 'vue-router';
+import { useCurrentUser, useFirebaseAuth } from 'vuefire';
+
 import { string } from 'yup';
 
+const auth = useFirebaseAuth()!;
+
 const router = useRouter();
-// @ts-expect-error - definePage is not defined in the current context
+
 definePage({
   name: 'Login',
+  meta: {
+    requiresAuth: false,
+  },
 });
 interface FormData {
   email: string;
@@ -30,7 +37,7 @@ const onSubmit = handleSubmit(
   // Success
   (values: FormData) => {
     // handle form submission here
-    logInWithFirebase(values.email, values.password)
+    signInWithEmailAndPassword(auth, values.email, values.password)
       .then(() => {
         resetForm();
         router.push('/');
@@ -51,12 +58,12 @@ const onSubmit = handleSubmit(
 const { value: email, errorMessage: emailError } = useField('email');
 const { value: password, errorMessage: passwordError } = useField('password');
 
-const { isLoggedIn } = useUser();
+const currentUser = useCurrentUser();
 
 watch(
-  () => isLoggedIn,
-  (isLoggedIn) => {
-    if (isLoggedIn) {
+  () => currentUser,
+  (currentUser) => {
+    if (currentUser) {
       router.push('/');
     }
   },

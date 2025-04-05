@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Before creating something new, check the [README.md](mdc:README.md) for possible details on the implementation.

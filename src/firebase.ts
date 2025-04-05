@@ -16,11 +16,11 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-export const app = initializeApp(firebaseConfig);
+export const firebaseApp = initializeApp(firebaseConfig);
 
-export const db = getFirestore(app);
+export const db = getFirestore(firebaseApp);
 
-export const auth = getAuth(app);
+export const auth = getAuth(firebaseApp);
 
 if (import.meta.env.DEV) {
   connectAuthEmulator(auth, 'http://localhost:9099');

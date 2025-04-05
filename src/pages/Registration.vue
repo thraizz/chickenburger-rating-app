@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { logInWithFirebase, useUser } from '@//user';
-import { app } from '@/firebase';
-import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
+import { logInWithFirebase } from '@/user';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useField, useForm } from 'vee-validate';
 import { watch } from 'vue';
-
 import { useRouter } from 'vue-router';
+
+import { useCurrentUser, useFirebaseAuth } from 'vuefire';
 import { string } from 'yup';
+
+const auth = useFirebaseAuth()!;
 
 interface FormData {
   email: string;
@@ -30,8 +32,6 @@ const router = useRouter();
 const onSubmit = handleSubmit(
   // Success
   (values: FormData) => {
-    const auth = getAuth(app);
-
     createUserWithEmailAndPassword(auth, values.email, values.password)
       .then(() => {
         logInWithFirebase(values.email, values.password);
@@ -57,12 +57,12 @@ const { value: password, errorMessage: passwordError }
 const { value: confirmPassword, errorMessage: confirmPasswordError }
   = useField('confirmPassword');
 
-const { isLoggedIn } = useUser();
+const currentUser = useCurrentUser();
 
 watch(
-  () => isLoggedIn,
-  (isLoggedIn) => {
-    if (isLoggedIn) {
+  () => currentUser,
+  (currentUser) => {
+    if (currentUser) {
       router.push('/');
     }
   },

@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type {
-  AuthError,
-} from 'firebase/auth';
+import type { AuthError } from 'firebase/auth';
 import { auth } from '@/firebase';
 import {
   browserLocalPersistence,

@@ -2,16 +2,29 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
     }
-    // Allow read for /userdata/public
-    match /userdata/public/{document=**} {
-      allow read: if true;
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
     }
-    // Allow read/write for /userdata/{userID}
-    match /userdata/{userID}/{document=**} {
-      allow read, write: if request.auth.uid == userID;
+
+    // Stores collection
+    match /stores/{storeId} {
+      allow read: if true;  // Anyone can read store information
+      allow create: if isAuthenticated();  // Only authenticated users can create stores
+      allow update: if isAuthenticated();  // Only authenticated users can update stores
+      allow delete: if false;  // Prevent store deletion
+
+      // Nested ratings collection
+      match /ratings/{ratingId} {
+        allow read: if true;  // Anyone can read ratings
+        allow create: if isAuthenticated();  // Only authenticated users can create ratings
+        allow update: if isAuthenticated() && isOwner(resource.data.userId);  // Only rating owner can update
+        allow delete: if isAuthenticated() && isOwner(resource.data.userId);  // Only rating owner can delete
+      }
     }
   }
 }

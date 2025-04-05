@@ -16,4 +16,14 @@ export default antfu({
   },
 }).append(...compat.config(pinia.configs.all)).append({
   ignores: ['src/api/'],
+}).append({
+  rules: {
+    'perfectionist/sort-imports': 'off',
+  },
+}).append({
+  languageOptions: {
+    globals: {
+      definePage: 'readonly',
+    },
+  },
 });
