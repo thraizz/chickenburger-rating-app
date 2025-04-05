@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { logInWithFirebase } from '@/user';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { useField, useForm } from 'vee-validate';
 import { watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { useCurrentUser, useFirebaseAuth } from 'vuefire';
-import { string } from 'yup';
+import { ref, string } from 'yup';
 
 const auth = useFirebaseAuth()!;
 
@@ -18,8 +17,16 @@ interface FormData {
 const { handleSubmit, resetForm, setErrors } = useForm<FormData>({
   validationSchema: {
     email: string().required().email(),
-    password: string().required().min(6),
-    confirmPassword: string(),
+    password: string()
+      .required()
+      .min(8, 'Password must be at least 8 characters')
+      .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+      .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+      .matches(/\d/, 'Password must contain at least one number')
+      .matches(/[^A-Z0-9]/i, 'Password must contain at least one special character'),
+    confirmPassword: string()
+      .required()
+      .oneOf([ref('password')], 'Passwords must match'),
   },
   initialValues: {
     email: '',
@@ -31,19 +38,28 @@ const { handleSubmit, resetForm, setErrors } = useForm<FormData>({
 const router = useRouter();
 const onSubmit = handleSubmit(
   // Success
-  (values: FormData) => {
-    createUserWithEmailAndPassword(auth, values.email, values.password)
-      .then(() => {
-        logInWithFirebase(values.email, values.password);
-        resetForm();
-        router.push('/');
-      })
-      .catch(() => {
-        setErrors({
-          email: 'Invalid email or password.',
-          password: 'Invalid email or password.',
-        });
+  async (values: FormData) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      await sendEmailVerification(userCredential.user, {
+        url: `${window.location.origin}/login?email=${encodeURIComponent(values.email)}`,
       });
+      resetForm();
+      router.push('/verify-email');
+    }
+    catch (error: any) {
+      if (error.code === 'auth/email-already-in-use') {
+        setErrors({
+          email: 'This email is already registered.',
+        });
+      }
+      else {
+        setErrors({
+          email: 'Registration failed. Please try again.',
+          password: 'Registration failed. Please try again.',
+        });
+      }
+    }
   },
   // Failure
   (errors: any) => {

@@ -21,12 +21,24 @@ router.beforeEach(async (to, from, next) => {
       const currentUser = auth.currentUser;
 
       if (!currentUser) {
-        // Redirect to home with redirect param if not authenticated
+        // Redirect to login with redirect param if not authenticated
         return next({
           path: '/login',
           query: { redirect: to.fullPath },
         });
       }
+
+      // Check email verification for protected routes
+      if (!currentUser.emailVerified && to.path !== '/verify-email') {
+        return next({
+          path: '/verify-email',
+        });
+      }
+    }
+
+    // Prevent authenticated users from accessing auth pages
+    if (['/login', '/register'].includes(to.path) && auth.currentUser) {
+      return next('/');
     }
 
     // Catch all 404s

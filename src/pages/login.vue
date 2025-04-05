@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import GoogleSSO from '@/components/GoogleSSO.vue';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { sendEmailVerification, signInWithEmailAndPassword } from 'firebase/auth';
 import { useField, useForm } from 'vee-validate';
 import { watch } from 'vue';
 
@@ -35,19 +35,41 @@ const { handleSubmit, resetForm, setErrors } = useForm<FormData>({
 });
 const onSubmit = handleSubmit(
   // Success
-  (values: FormData) => {
-    // handle form submission here
-    signInWithEmailAndPassword(auth, values.email, values.password)
-      .then(() => {
-        resetForm();
-        router.push('/');
-      })
-      .catch(() => {
+  async (values: FormData) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+
+      if (!userCredential.user.emailVerified) {
+        await sendEmailVerification(userCredential.user, {
+          url: `${window.location.origin}/login?email=${encodeURIComponent(values.email)}`,
+        });
+        router.push('/verify-email');
+        return;
+      }
+
+      resetForm();
+      router.push('/');
+    }
+    catch (error: any) {
+      if (error.code === 'auth/invalid-credential') {
         setErrors({
           email: 'Invalid email or password.',
           password: 'Invalid email or password.',
         });
-      });
+      }
+      else if (error.code === 'auth/too-many-requests') {
+        setErrors({
+          email: 'Too many login attempts. Please try again later.',
+          password: 'Too many login attempts. Please try again later.',
+        });
+      }
+      else {
+        setErrors({
+          email: 'Login failed. Please try again.',
+          password: 'Login failed. Please try again.',
+        });
+      }
+    }
   },
   // Failure
   (errors: any) => {
