@@ -1,0 +1,72 @@
+{
+  "name": "vue3-firebase",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest --bail 0 --run --passWithNoTests",
+    "lint": "eslint --ext .ts,.vue src",
+    "typecheck": "vue-tsc",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@headlessui/vue": "^1.7.23",
+    "@heroicons/vue": "^2.2.0",
+    "@phosphor-icons/vue": "^2.2.1",
+    "@tailwindcss/vite": "^4.1.3",
+    "firebase": "^11.6.0",
+    "pinia": "^3.0.1",
+    "tailwindcss": "^4.1.3",
+    "vee-validate": "^4.15.0",
+    "vite-plugin-vue-layouts-next": "^0.0.10",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "vuedraggable": "^4.1.0",
+    "yup": "^1.6.1"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^4.11.0",
+    "@iconify-json/ph": "^1.2.2",
+    "@playwright/test": "^1.51.1",
+    "@tsconfig/node20": "^20.1.5",
+    "@types/jsdom": "^21.1.7",
+    "@types/lodash": "^4.17.16",
+    "@types/node": "^22.14.0",
+    "@types/qs": "^6.9.18",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "@vitejs/plugin-vue-jsx": "^4.1.2",
+    "@vue/language-server": "^2.2.8",
+    "@vue/test-utils": "^2.4.6",
+    "@vue/tsconfig": "^0.7.0",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.24.0",
+    "eslint-plugin-format": "^1.0.1",
+    "eslint-plugin-pinia": "^0.4.1",
+    "husky": "^9.1.7",
+    "jsdom": "^26.0.0",
+    "msw": "^2.7.3",
+    "npm-run-all2": "^7.0.2",
+    "typescript": "^5.8.3",
+    "unplugin-auto-import": "^19.1.2",
+    "unplugin-vue-components": "^28.4.1",
+    "unplugin-vue-router": "^0.12.0",
+    "value-noise-js": "^1.2.6",
+    "vite": "^6.2.5",
+    "vite-plugin-pwa": "^1.0.0",
+    "vitest": "^3.1.1",
+    "vue-tsc": "^2.2.8"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@firebase/util",
+      "esbuild",
+      "msw",
+      "protobufjs",
+      "vue-demi"
+    ]
+  }
+}
