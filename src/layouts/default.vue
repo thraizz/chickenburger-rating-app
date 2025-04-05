@@ -18,7 +18,7 @@ const navigationItems = [
               <span
                 class="text-2xl font-bold bg-gradient-to-r from-amber-600 to-red-600 bg-clip-text text-transparent"
               >
-                ChickenBurger
+                Chickenburger Scout
               </span>
             </router-link>
           </div>
@@ -62,7 +62,7 @@ const navigationItems = [
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="flex justify-between items-center">
           <p class="text-gray-500 text-sm">
-            © {{ new Date().getFullYear() }} ChickenBurger Ratings. All rights
+            © {{ new Date().getFullYear() }} Chickenburger Scout. All rights
             reserved.
           </p>
           <div class="flex space-x-6">

@@ -1,6 +1,6 @@
-# Chickenburger Rating App
+# Chickenburger Scout
 
-This is a simple rating app for chickenburgers.
+Your ultimate guide to discovering and rating the best chicken burgers.
 
 ## Development
 

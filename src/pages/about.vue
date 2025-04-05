@@ -8,7 +8,7 @@
     <section class="hero">
       <div class="hero-content">
         <h1 class="title">
-          About ChickenBurger Rating
+          About Chickenburger Scout
         </h1>
         <p class="subtitle">
           Discover the ultimate guide to rating your favorite chicken burgers

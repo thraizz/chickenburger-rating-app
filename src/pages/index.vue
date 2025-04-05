@@ -72,7 +72,7 @@ function onMapUnmounted() {
         class="w-32 h-32 mx-auto"
       >
       <h1 class="text-4xl font-bold text-gray-900">
-        Welcome to ChickenBurger Ratings
+        Welcome to Chickenburger Scout
       </h1>
       <p class="text-xl text-gray-600">
         Discover and rate the best chicken burgers in your area.
