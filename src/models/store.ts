@@ -15,6 +15,7 @@ export interface Store {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   convertedFromExisting?: boolean;
+  userId?: string;
 }
 
 export interface Rating {
@@ -24,6 +25,7 @@ export interface Rating {
   review: string;
   imageUrl?: string;
   createdAt: Timestamp;
+  userId?: string;
 }
 
 // Collection references

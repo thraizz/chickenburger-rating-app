@@ -1,11 +1,12 @@
 import { addDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { useCollection, useDocument } from 'vuefire';
-import type { Rating, Store } from '../models/store';
+import { useCollection, useCurrentUser, useDocument } from 'vuefire';
+import type { Store } from '../models/store';
 import { getStoreRatingsCollection, storesCollection } from '../models/store';
 
 export function useStores() {
   // Get all stores
   const stores = useCollection(storesCollection);
+  const user = useCurrentUser();
 
   // Get a single store
   const getStore = (storeId: string) => {
@@ -19,6 +20,7 @@ export function useStores() {
     const timestamp = serverTimestamp();
     return await addDoc(storesCollection, {
       ...storeData,
+      userId: user.value?.uid,
       createdAt: timestamp,
       updatedAt: timestamp,
     });
@@ -38,41 +40,11 @@ export function useStores() {
     return useCollection(getStoreRatingsCollection(storeId));
   };
 
-  // Add a rating
-  const addRating = async (
-    storeId: string,
-    ratingData: Omit<Rating, 'id' | 'storeId' | 'createdAt' | 'updatedAt'>,
-  ) => {
-    const timestamp = serverTimestamp();
-    const ratingsCollection = getStoreRatingsCollection(storeId);
-    return await addDoc(ratingsCollection, {
-      ...ratingData,
-      storeId,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    });
-  };
-
-  // Update a rating
-  const updateRating = async (
-    storeId: string,
-    ratingId: string,
-    ratingData: Partial<Rating>,
-  ) => {
-    const ratingRef = doc(getStoreRatingsCollection(storeId), ratingId);
-    return await updateDoc(ratingRef, {
-      ...ratingData,
-      updatedAt: serverTimestamp(),
-    });
-  };
-
   return {
     stores,
     getStore,
     addStore,
     updateStore,
     getStoreRatings,
-    addRating,
-    updateRating,
   };
 }

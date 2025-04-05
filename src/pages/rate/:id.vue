@@ -1,19 +1,14 @@
 <script setup lang="ts">
+import { useRatings } from '@/composables/useRatings';
 import { db } from '@/firebase';
-import type { Rating, Store } from '@/models/store';
+import type { Store } from '@/models/store';
 import {
-  addDoc,
-  collection,
   doc,
-  orderBy,
-  query,
-  serverTimestamp,
-  where,
 } from 'firebase/firestore';
 import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { useCollection, useDocument } from 'vuefire';
+import { useDocument } from 'vuefire';
 
 const route = useRoute();
 const id = route.params.id as string;
@@ -26,12 +21,7 @@ const {
   error,
 } = useDocument<Store>(doc(db, 'stores', id));
 
-const storeRatingsQuery = query(
-  collection(db, 'ratings'),
-  where('storeId', '==', id),
-  orderBy('createdAt', 'desc'),
-);
-const { data: storeRatings } = useCollection<Rating>(storeRatingsQuery);
+const { addRating, ratings } = useRatings(id);
 
 const rating = ref(0);
 const hoverRating = ref(0);
@@ -96,12 +86,10 @@ async function submitRating() {
       }
     }
 
-    await addDoc(collection(db, 'ratings'), {
-      storeId: id,
+    await addRating(id, {
       rating: rating.value,
-      review: review.value.trim(),
+      review: review.value,
       imageUrl,
-      createdAt: serverTimestamp(),
     });
 
     // Reset form
@@ -150,7 +138,7 @@ async function submitRating() {
         </h2>
 
         <!-- Rating Selection -->
-        <div class="flex items-center mb-6">
+        <div class="flex flex-col md:flex-row items-center mb-6">
           <div class="relative flex space-x-1">
             <!-- Burger icons -->
             <div class="flex space-x-1">
@@ -259,12 +247,12 @@ async function submitRating() {
         <h3 class="text-lg font-semibold mb-4">
           Previous Ratings
         </h3>
-        <div v-if="!storeRatings?.length" class="text-gray-600">
+        <div v-if="!ratings?.length" class="text-gray-600">
           No ratings yet. Be the first to rate!
         </div>
         <div v-else class="space-y-4">
           <div
-            v-for="r in storeRatings"
+            v-for="r in ratings"
             :key="r.id"
             class="bg-white rounded-lg shadow p-4"
           >
