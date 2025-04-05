@@ -31,8 +31,3 @@ export interface Rating {
 // Collection references
 export const storesCollection = collection(db, 'stores');
 export const ratingsCollection = collection(db, 'ratings');
-
-// Helper to get ratings for a specific store
-export function getStoreRatingsCollection(storeId: string) {
-  return collection(db, 'stores', storeId, 'ratings');
-}

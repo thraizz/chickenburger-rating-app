@@ -1,7 +1,7 @@
 import { addDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { useCollection, useCurrentUser, useDocument } from 'vuefire';
 import type { Store } from '../models/store';
-import { getStoreRatingsCollection, storesCollection } from '../models/store';
+import { storesCollection } from '../models/store';
 
 export function useStores() {
   // Get all stores
@@ -35,16 +35,10 @@ export function useStores() {
     });
   };
 
-  // Get ratings for a store
-  const getStoreRatings = (storeId: string) => {
-    return useCollection(getStoreRatingsCollection(storeId));
-  };
-
   return {
     stores,
     getStore,
     addStore,
     updateStore,
-    getStoreRatings,
   };
 }
