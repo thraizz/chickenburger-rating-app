@@ -17,6 +17,14 @@ service cloud.firestore {
       allow create: if isAuthenticated();  // Only authenticated users can create stores
       allow update: if isAuthenticated();  // Only authenticated users can update stores
       allow delete: if false;  // Prevent store deletion
+
+      // Ratings subcollection under each store
+      match /ratings/{ratingId} {
+        allow read: if true;  // Anyone can read store ratings
+        allow create: if isAuthenticated();  // Only authenticated users can create ratings
+        allow update: if false;  // Ratings cannot be edited once submitted
+        allow delete: if false;  // Ratings cannot be deleted
+      }
     }
 
     // Ratings collection (top-level)
