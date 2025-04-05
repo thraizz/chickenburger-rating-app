@@ -39,17 +39,34 @@ const review = ref('');
 const submitting = ref(false);
 const selectedImage = ref<File | null>(null);
 const imagePreview = ref('');
+const uploadError = ref('');
 
 // Handle image selection
 function handleImageSelect(event: Event) {
   const input = event.target as HTMLInputElement;
   if (input.files && input.files[0]) {
-    selectedImage.value = input.files[0];
+    const file = input.files[0];
+    // Check file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      uploadError.value = 'Image size must be less than 5MB';
+      selectedImage.value = null;
+      imagePreview.value = '';
+      return;
+    }
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      uploadError.value = 'Only image files are allowed';
+      selectedImage.value = null;
+      imagePreview.value = '';
+      return;
+    }
+    uploadError.value = '';
+    selectedImage.value = file;
     const reader = new FileReader();
     reader.onload = (e) => {
       imagePreview.value = e.target?.result as string;
     };
-    reader.readAsDataURL(input.files[0]);
+    reader.readAsDataURL(file);
   }
 }
 
@@ -59,14 +76,24 @@ async function submitRating() {
     return;
 
   submitting.value = true;
+  uploadError.value = '';
+
   try {
     let imageUrl = '';
 
     // Upload image if selected
     if (selectedImage.value) {
-      const imageRef = storageRef(storage, `ratings/${id}/${Date.now()}-${selectedImage.value.name}`);
-      const snapshot = await uploadBytes(imageRef, selectedImage.value);
-      imageUrl = await getDownloadURL(snapshot.ref);
+      try {
+        const imageRef = storageRef(storage, `ratings/${id}/${Date.now()}-${selectedImage.value.name}`);
+        const snapshot = await uploadBytes(imageRef, selectedImage.value);
+        imageUrl = await getDownloadURL(snapshot.ref);
+      }
+      catch (e) {
+        console.error('Error uploading image:', e);
+        uploadError.value = 'Failed to upload image. Please try again or submit without an image.';
+        submitting.value = false;
+        return;
+      }
     }
 
     await addDoc(collection(db, 'ratings'), {
@@ -82,9 +109,11 @@ async function submitRating() {
     review.value = '';
     selectedImage.value = null;
     imagePreview.value = '';
+    uploadError.value = '';
   }
   catch (e) {
     console.error('Error submitting rating:', e);
+    uploadError.value = 'Failed to submit rating. Please try again.';
   }
   finally {
     submitting.value = false;
@@ -178,7 +207,7 @@ async function submitRating() {
         <!-- Image Upload -->
         <div class="mb-6">
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Add a Photo
+            Add a Photo (optional, max 5MB)
           </label>
           <div class="flex items-center space-x-4">
             <label
@@ -200,7 +229,7 @@ async function submitRating() {
               >
               <button
                 class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-                @click="selectedImage = null; imagePreview = ''"
+                @click="selectedImage = null; imagePreview = ''; uploadError = ''"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -208,6 +237,9 @@ async function submitRating() {
               </button>
             </div>
           </div>
+          <p v-if="uploadError" class="mt-2 text-sm text-red-600">
+            {{ uploadError }}
+          </p>
         </div>
 
         <!-- Submit Button -->

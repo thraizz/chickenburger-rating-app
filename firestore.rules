@@ -11,6 +11,11 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
+    // Check if the rating data contains an image URL
+    function hasImageUrl() {
+      return request.resource.data.imageUrl != null && request.resource.data.imageUrl != "";
+    }
+
     // Stores collection
     match /stores/{storeId} {
       allow read: if true;  // Anyone can read store information
@@ -21,7 +26,8 @@ service cloud.firestore {
       // Ratings subcollection under each store
       match /ratings/{ratingId} {
         allow read: if true;  // Anyone can read store ratings
-        allow create: if isAuthenticated();  // Only authenticated users can create ratings
+        allow create: if isAuthenticated() 
+          && (!hasImageUrl() || request.resource.data.imageUrl.size() < 500);  // Only allow one image URL of reasonable size
         allow update: if false;  // Ratings cannot be edited once submitted
         allow delete: if false;  // Ratings cannot be deleted
       }
@@ -30,7 +36,8 @@ service cloud.firestore {
     // Ratings collection (top-level)
     match /ratings/{ratingId} {
       allow read: if true;  // Anyone can read ratings
-      allow create: if isAuthenticated();  // Only authenticated users can create ratings
+      allow create: if isAuthenticated()
+        && (!hasImageUrl() || request.resource.data.imageUrl.size() < 500);  // Only allow one image URL of reasonable size
       allow update: if false;  // Ratings cannot be edited once submitted
       allow delete: if false;  // Ratings cannot be deleted
     }
