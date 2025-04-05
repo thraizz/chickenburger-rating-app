@@ -10,12 +10,14 @@ import {
   serverTimestamp,
   where,
 } from 'firebase/firestore';
+import { getDownloadURL, getStorage, ref as storageRef, uploadBytes } from 'firebase/storage';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useCollection, useDocument } from 'vuefire';
 
 const route = useRoute();
 const id = route.params.id as string;
+const storage = getStorage();
 
 // Use VueFire's composables
 const {
@@ -35,6 +37,21 @@ const rating = ref(0);
 const hoverRating = ref(0);
 const review = ref('');
 const submitting = ref(false);
+const selectedImage = ref<File | null>(null);
+const imagePreview = ref('');
+
+// Handle image selection
+function handleImageSelect(event: Event) {
+  const input = event.target as HTMLInputElement;
+  if (input.files && input.files[0]) {
+    selectedImage.value = input.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imagePreview.value = e.target?.result as string;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
 
 // Submit rating
 async function submitRating() {
@@ -43,16 +60,28 @@ async function submitRating() {
 
   submitting.value = true;
   try {
+    let imageUrl = '';
+
+    // Upload image if selected
+    if (selectedImage.value) {
+      const imageRef = storageRef(storage, `ratings/${id}/${Date.now()}-${selectedImage.value.name}`);
+      const snapshot = await uploadBytes(imageRef, selectedImage.value);
+      imageUrl = await getDownloadURL(snapshot.ref);
+    }
+
     await addDoc(collection(db, 'ratings'), {
       storeId: id,
       rating: rating.value,
       review: review.value.trim(),
+      imageUrl,
       createdAt: serverTimestamp(),
     });
 
     // Reset form
     rating.value = 0;
     review.value = '';
+    selectedImage.value = null;
+    imagePreview.value = '';
   }
   catch (e) {
     console.error('Error submitting rating:', e);
@@ -91,33 +120,39 @@ async function submitRating() {
           Rate this Chicken Burger
         </h2>
 
-        <!-- Star Rating -->
+        <!-- Rating Selection -->
         <div class="flex items-center mb-6">
-          <div class="flex space-x-1">
-            <button
-              v-for="star in 5"
-              :key="star"
-              class="focus:outline-none"
-              :class="
-                star <= (hoverRating || rating)
-                  ? 'text-amber-400'
-                  : 'text-gray-300'
-              "
-              @click="rating = star"
-              @mouseenter="hoverRating = star"
+          <div class="relative flex space-x-1">
+            <!-- Burger icons -->
+            <div class="flex space-x-1">
+              <div
+                v-for="burger in 10"
+                :key="burger"
+                class="transition-opacity duration-150"
+                :class="burger <= (hoverRating || rating) ? 'opacity-100' : 'opacity-30'"
+              >
+                <img src="/chickenburger_128px.png" class="w-8 h-8" alt="Chicken Burger Rating">
+              </div>
+            </div>
+
+            <!-- Interactive area -->
+            <div
+              class="absolute top-0 left-0 w-full h-full"
+              @mousemove="(e: MouseEvent) => {
+                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const width = rect.width;
+                const burgerWidth = width / 10;
+                hoverRating = Math.max(1, Math.min(10, Math.ceil(x / burgerWidth)));
+              }"
               @mouseleave="hoverRating = 0"
-            >
-              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                />
-              </svg>
-            </button>
+              @click="rating = hoverRating"
+            />
           </div>
           <span class="ml-2 text-gray-600">
             {{
               rating
-                ? `${rating} star${rating !== 1 ? 's' : ''}`
+                ? `${rating} out of 10 burger${rating !== 1 ? 's' : ''}`
                 : 'Select rating'
             }}
           </span>
@@ -138,6 +173,41 @@ async function submitRating() {
             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"
             placeholder="Tell us about your chicken burger experience..."
           />
+        </div>
+
+        <!-- Image Upload -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Add a Photo
+          </label>
+          <div class="flex items-center space-x-4">
+            <label
+              class="cursor-pointer px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              <span class="text-sm text-gray-600">Choose Image</span>
+              <input
+                type="file"
+                accept="image/*"
+                class="hidden"
+                @change="handleImageSelect"
+              >
+            </label>
+            <div v-if="imagePreview" class="relative">
+              <img
+                :src="imagePreview"
+                class="h-20 w-20 object-cover rounded-md"
+                alt="Selected image preview"
+              >
+              <button
+                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                @click="selectedImage = null; imagePreview = ''"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Submit Button -->
@@ -167,26 +237,29 @@ async function submitRating() {
             class="bg-white rounded-lg shadow p-4"
           >
             <div class="flex items-center mb-2">
-              <div class="flex text-amber-400">
-                <svg
-                  v-for="star in r.rating"
-                  :key="star"
-                  class="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
+              <div class="flex space-x-1">
+                <div
+                  v-for="burger in 10"
+                  :key="burger"
+                  :class="burger <= r.rating ? 'opacity-100' : 'opacity-30'"
+                  class="transition-opacity duration-150"
                 >
-                  <path
-                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                  />
-                </svg>
+                  <img src="/chickenburger_128px.png" class="w-5 h-5" alt="Chicken Burger Rating">
+                </div>
               </div>
               <span class="ml-2 text-sm text-gray-600">
                 {{ new Date(r.createdAt?.toDate()).toLocaleDateString() }}
               </span>
             </div>
-            <p class="text-gray-700">
+            <p class="text-gray-700 mb-4">
               {{ r.review }}
             </p>
+            <img
+              v-if="r.imageUrl"
+              :src="r.imageUrl"
+              class="w-full max-w-md rounded-lg shadow-sm"
+              alt="Rating photo"
+            >
           </div>
         </div>
       </div>

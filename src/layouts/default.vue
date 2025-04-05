@@ -1,7 +1,6 @@
 <script setup>
 const navigationItems = [
   { name: 'Home', path: '/' },
-  { name: 'Rate', path: '/rate' },
   { name: 'Top Rated', path: '/top-rated' },
   { name: 'About', path: '/about' },
 ];

@@ -72,7 +72,7 @@ watch(
 
 <template>
   <div
-    class="lg:px-8 min-h-full flex flex-1 flex-col justify-center px-6 py-12"
+    class="lg:px-8 min-h-full flex flex-1 flex-col justify-center px-6 py-12 bg-white rounded-lg shadow-md w-fit mx-auto"
   >
     <div class="sm:mx-auto sm:w-full sm:max-w-sm">
       <h2

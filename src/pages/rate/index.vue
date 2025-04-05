@@ -1,7 +1,7 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useRouter } from 'vue-router';
 
-<template>
-  <div>
-    <h1>Rate</h1>
-  </div>
-</template>
+const router = useRouter();
+
+router.push('/');
+</script>

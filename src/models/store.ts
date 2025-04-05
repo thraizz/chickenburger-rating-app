@@ -22,6 +22,7 @@ export interface Rating {
   storeId: string;
   rating: number;
   review: string;
+  imageUrl?: string;
   createdAt: Timestamp;
 }
 

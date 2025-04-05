@@ -17,14 +17,14 @@ service cloud.firestore {
       allow create: if isAuthenticated();  // Only authenticated users can create stores
       allow update: if isAuthenticated();  // Only authenticated users can update stores
       allow delete: if false;  // Prevent store deletion
+    }
 
-      // Nested ratings collection
-      match /ratings/{ratingId} {
-        allow read: if true;  // Anyone can read ratings
-        allow create: if isAuthenticated();  // Only authenticated users can create ratings
-        allow update: if isAuthenticated() && isOwner(resource.data.userId);  // Only rating owner can update
-        allow delete: if isAuthenticated() && isOwner(resource.data.userId);  // Only rating owner can delete
-      }
+    // Ratings collection (top-level)
+    match /ratings/{ratingId} {
+      allow read: if true;  // Anyone can read ratings
+      allow create: if isAuthenticated();  // Only authenticated users can create ratings
+      allow update: if false;  // Ratings cannot be edited once submitted
+      allow delete: if false;  // Ratings cannot be deleted
     }
   }
 }
