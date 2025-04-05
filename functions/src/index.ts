@@ -8,7 +8,6 @@ initializeApp();
 const db = getFirestore();
 
 export const deleteUserData = onCall(async (request) => {
-  console.log('deleteUserData');
   try {
     const uid = request.auth?.uid;
     if (!uid) {

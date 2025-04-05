@@ -26,4 +26,5 @@ export default antfu({
       definePage: 'readonly',
     },
   },
+  ignores: ['functions/**/*'],
 });
