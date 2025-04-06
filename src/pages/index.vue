@@ -6,7 +6,7 @@ import { useCurrentUser } from 'vuefire';
 definePage({
   name: 'Home',
   meta: {
-    requiresAuth: true,
+    requiresAuth: false,
   },
 });
 
