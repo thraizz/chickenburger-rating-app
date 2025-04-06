@@ -73,7 +73,7 @@ function getUserLocation() {
           Log In
         </router-link>
         <router-link
-          to="/signup"
+          to="/register"
           class="px-6 py-3 bg-white text-amber-600 border-2 border-amber-500 rounded-lg hover:bg-amber-50 transition-colors duration-200"
         >
           Sign Up
