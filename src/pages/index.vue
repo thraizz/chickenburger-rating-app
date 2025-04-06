@@ -30,15 +30,6 @@ function getUserLocation() {
     { enableHighAccuracy: true },
   );
 }
-
-function onMapMounted() {
-  isMapMounted.value = true;
-}
-
-function onMapUnmounted() {
-  isMapMounted.value = false;
-  mapRef.value = null;
-}
 </script>
 
 <template>
@@ -56,14 +47,11 @@ function onMapUnmounted() {
           Find Near Me
         </button>
       </div>
-      <Transition mode="out-in" @leave="onMapUnmounted">
-        <Map
-          v-if="isAuthenticated"
-          :key="`map-${currentUser?.uid}`"
-          ref="mapRef"
-          @mounted="onMapMounted"
-        />
-      </Transition>
+      <Map
+        v-if="isAuthenticated"
+        :key="`map-${currentUser?.uid}`"
+        ref="mapRef"
+      />
     </div>
     <div v-else class="max-w-2xl mx-auto text-center space-y-6 py-12">
       <img

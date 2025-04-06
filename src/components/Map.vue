@@ -3,6 +3,7 @@ import type { DocumentData } from 'firebase/firestore';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { useAllRatings } from '../composables/useRatings';
 import { useStores } from '../composables/useStores';
 
 interface Store extends DocumentData {
@@ -13,6 +14,8 @@ interface Store extends DocumentData {
     latitude: number;
     longitude: number;
   };
+  averageRating?: number;
+  totalRatings?: number;
 }
 
 const locations = ref<Store[]>([]);
@@ -27,6 +30,7 @@ let markersGroup: L.LayerGroup | null = null;
 let tempMarker: L.Marker | null = null;
 
 const { stores, addStore } = useStores();
+const { averageRatings } = useAllRatings();
 
 // Custom marker icon
 const customIcon = L.icon({
@@ -158,13 +162,21 @@ onMounted(() => {
         if (!map || !newStores)
           return;
 
-        locations.value = newStores.map((store: DocumentData) => ({
-          id: store.id,
-          name: store.name,
-          address: store.address,
-          location: store.location,
-          ...store,
-        })) as Store[];
+        locations.value = newStores.map((store: DocumentData) => {
+          const ratingInfo = averageRatings.value?.get(store.id);
+          const averageRating = ratingInfo ? ratingInfo.total / ratingInfo.count : 0;
+          const totalRatings = ratingInfo?.count || 0;
+
+          return {
+            id: store.id,
+            name: store.name,
+            address: store.address,
+            location: store.location,
+            averageRating,
+            totalRatings,
+            ...store,
+          } as Store;
+        });
 
         if (markersGroup) {
           markersGroup.clearLayers();
@@ -183,7 +195,14 @@ onMounted(() => {
               .bindPopup(`
                 <div class="p-4">
                   <h3 class="font-bold text-lg mb-1">${store.name}</h3>
-                  <p class="text-gray-600 mb-3">${store.address}</p>
+                  <p class="text-gray-600 mb-2">${store.address}</p>
+                  ${store.totalRatings! > 0
+                      ? `<p class="text-amber-600 font-semibold mb-3">
+                        ${store.averageRating?.toFixed(1)}/10
+                        <span class="text-gray-500 text-sm font-normal">(${store.totalRatings} rating${store.totalRatings !== 1 ? 's' : ''})</span>
+                      </p>`
+                      : '<p class="text-gray-500 text-sm mb-3">No ratings yet</p>'
+                  }
                   <div class="flex space-x-2">
                     <button 
                       onclick="window.location.href='/rate/${store.id}'"
