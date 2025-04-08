@@ -26,7 +26,7 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+  <div class="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex flex-col">
     <!-- Navigation Bar -->
     <nav class="bg-white shadow-lg">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
