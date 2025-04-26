@@ -1,5 +1,11 @@
 <script setup lang="ts">
 // Component logic can be added here
+definePage({
+  name: 'About',
+  meta: {
+    requiresAuth: false,
+  },
+});
 </script>
 
 <template>

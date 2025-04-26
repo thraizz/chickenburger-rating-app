@@ -3,8 +3,17 @@ import type { DocumentData } from 'firebase/firestore';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAllRatings } from '../composables/useRatings';
 import { useStores } from '../composables/useStores';
+
+// Add isAuthenticated prop
+const props = defineProps<{
+  isAuthenticated: boolean;
+}>();
+
+// Add mounted event
+const emit = defineEmits(['mounted']);
 
 interface Store extends DocumentData {
   id: string;
@@ -24,6 +33,7 @@ const error = ref<string | null>(null);
 const isLoading = ref(false);
 const isLoadingLocation = ref(true);
 const activeStore = ref<Store | null>(null);
+const router = useRouter();
 
 let map: L.Map | null = null;
 let markersGroup: L.LayerGroup | null = null;
@@ -41,10 +51,24 @@ const customIcon = L.icon({
 });
 
 function toggleAddingStore(): void {
+  // Check if user is authenticated before allowing to add a store
+  if (!props.isAuthenticated) {
+    router.push('/login?redirect=/');
+    return;
+  }
+
   isAddingStore.value = !isAddingStore.value;
   if (!isAddingStore.value && tempMarker) {
     tempMarker.remove();
     tempMarker = null;
+  }
+}
+
+// Handle rating button click for non-authenticated users
+function handleRateClick(storeId: string, event: Event): void {
+  if (!props.isAuthenticated) {
+    event.preventDefault();
+    router.push(`/login?redirect=/rate/${storeId}`);
   }
 }
 
@@ -145,6 +169,9 @@ onMounted(() => {
   try {
     map = L.map('map').setView([51.505, -0.09], 13);
 
+    // Emit mounted event for parent component
+    emit('mounted');
+
     L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
       {
@@ -184,6 +211,36 @@ onMounted(() => {
 
         locations.value.forEach((store: Store) => {
           if (store.location?.latitude && store.location?.longitude) {
+            // Update popup HTML to include the store ID for event handling
+            const popupHtml = `
+              <div class="p-4">
+                <h3 class="font-bold text-lg mb-1">${store.name}</h3>
+                <p class="text-gray-600 mb-2">${store.address}</p>
+                ${store.totalRatings! > 0
+                    ? `<p class="text-amber-600 font-semibold mb-3">
+                      ${store.averageRating?.toFixed(1)}/10
+                      <span class="text-gray-500 text-sm font-normal">(${store.totalRatings} rating${store.totalRatings !== 1 ? 's' : ''})</span>
+                    </p>`
+                    : '<p class="text-gray-500 text-sm mb-3">No ratings yet</p>'
+                }
+                <div class="flex space-x-2">
+                  <button 
+                    id="rate-button-${store.id}"
+                    class="px-3 py-1 bg-amber-500 text-white rounded-md text-sm hover:bg-amber-600 flex-1"
+                  >
+                    Rate This Place
+                  </button>
+                  <a
+                    href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${store.address}`)}"
+                    target="_blank"
+                    class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200"
+                  >
+                    Directions
+                  </a>
+                </div>
+              </div>
+            `;
+
             const marker = L.marker(
               [store.location.latitude, store.location.longitude],
               {
@@ -192,34 +249,22 @@ onMounted(() => {
               },
             )
               .addTo(markersGroup!)
-              .bindPopup(`
-                <div class="p-4">
-                  <h3 class="font-bold text-lg mb-1">${store.name}</h3>
-                  <p class="text-gray-600 mb-2">${store.address}</p>
-                  ${store.totalRatings! > 0
-                      ? `<p class="text-amber-600 font-semibold mb-3">
-                        ${store.averageRating?.toFixed(1)}/10
-                        <span class="text-gray-500 text-sm font-normal">(${store.totalRatings} rating${store.totalRatings !== 1 ? 's' : ''})</span>
-                      </p>`
-                      : '<p class="text-gray-500 text-sm mb-3">No ratings yet</p>'
-                  }
-                  <div class="flex space-x-2">
-                    <button 
-                      onclick="window.location.href='/rate/${store.id}'"
-                      class="px-3 py-1 bg-amber-500 text-white rounded-md text-sm hover:bg-amber-600 flex-1"
-                    >
-                      Rate This Place
-                    </button>
-                    <a
-                      href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${store.address}`)}"
-                      target="_blank"
-                      class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm hover:bg-gray-200"
-                    >
-                      Directions
-                    </a>
-                  </div>
-                </div>
-              `);
+              .bindPopup(popupHtml);
+
+            // Add event listener for rate button after popup is opened
+            marker.on('popupopen', () => {
+              setTimeout(() => {
+                const rateButton = document.getElementById(`rate-button-${store.id}`);
+                if (rateButton) {
+                  rateButton.addEventListener('click', (e) => {
+                    handleRateClick(store.id, e);
+                    if (props.isAuthenticated) {
+                      window.location.href = `/rate/${store.id}`;
+                    }
+                  });
+                }
+              }, 100); // Small delay to ensure DOM is updated
+            });
 
             // Highlight marker on hover
             marker.on('mouseover', () => {
@@ -332,6 +377,23 @@ onUnmounted(() => {
           {{ error }}
         </p>
       </div>
+    </div>
+
+    <!-- Authentication notice for non-logged in users -->
+    <div
+      v-if="!isAuthenticated"
+      class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[1000] bg-white p-3 rounded-lg shadow-md"
+    >
+      <p class="text-sm text-gray-700">
+        <router-link to="/login" class="text-amber-600 font-medium">
+          Log in
+        </router-link>
+        or
+        <router-link to="/register" class="text-amber-600 font-medium">
+          sign up
+        </router-link>
+        to add new stores and rate chicken burgers.
+      </p>
     </div>
   </div>
 </template>

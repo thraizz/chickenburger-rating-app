@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import TopRatedBurgers from '../components/TopRatedBurgers.vue';
+
+definePage({
+  name: 'TopRated',
+  meta: {
+    requiresAuth: false,
+  },
+});
 </script>
 
 <template>

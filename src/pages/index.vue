@@ -34,26 +34,8 @@ function getUserLocation() {
 
 <template>
   <div class="space-y-8">
-    <div v-if="isAuthenticated" class="space-y-6">
-      <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-900">
-          Discover Chicken Burgers
-        </h1>
-        <button
-          class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors duration-200 flex items-center gap-2"
-          @click="getUserLocation"
-        >
-          <i class="fas fa-location-dot" />
-          Find Near Me
-        </button>
-      </div>
-      <Map
-        v-if="isAuthenticated"
-        :key="`map-${currentUser?.uid}`"
-        ref="mapRef"
-      />
-    </div>
-    <div v-else class="max-w-2xl mx-auto text-center space-y-6 py-12">
+    <!-- Welcome section for non-authenticated users -->
+    <div v-if="!isAuthenticated" class="max-w-2xl mx-auto text-center space-y-6 py-8">
       <img
         src="/chickenburger.png"
         alt="ChickenBurger Logo"
@@ -79,6 +61,27 @@ function getUserLocation() {
           Sign Up
         </router-link>
       </div>
+    </div>
+
+    <!-- Map section for all users -->
+    <div class="space-y-6">
+      <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-900">
+          Discover Chicken Burgers
+        </h1>
+        <button
+          class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors duration-200 flex items-center gap-2"
+          @click="getUserLocation"
+        >
+          <i class="fas fa-location-dot" />
+          Find Near Me
+        </button>
+      </div>
+      <Map
+        ref="mapRef"
+        :is-authenticated="isAuthenticated"
+        @mounted="isMapMounted = true"
+      />
     </div>
   </div>
 </template>

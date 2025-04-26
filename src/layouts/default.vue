@@ -42,9 +42,8 @@ async function handleLogout() {
             </router-link>
           </div>
           <div class="flex items-center space-x-4">
-            <div
-              v-if="currentUser"
-            >
+            <!-- Navigation links for all users -->
+            <div>
               <router-link
                 v-for="item in navigationItems"
                 :key="item.path"

@@ -10,6 +10,14 @@ import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useDocument } from 'vuefire';
 
+// Define page with authentication requirement
+definePage({
+  name: 'RateStore',
+  meta: {
+    requiresAuth: true,
+  },
+});
+
 const route = useRoute();
 const id = route.params.id as string;
 const storage = getStorage();
