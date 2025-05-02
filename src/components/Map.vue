@@ -4,15 +4,10 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useIsAuthenticated } from '../composables/useIsAuthenticated';
 import { useAllRatings } from '../composables/useRatings';
 import { useStores } from '../composables/useStores';
 
-// Add isAuthenticated prop
-const props = defineProps<{
-  isAuthenticated: boolean;
-}>();
-
-// Add mounted event
 const emit = defineEmits(['mounted']);
 
 interface Store extends DocumentData {
@@ -27,6 +22,7 @@ interface Store extends DocumentData {
   totalRatings?: number;
 }
 
+const isAuthenticated = useIsAuthenticated();
 const locations = ref<Store[]>([]);
 const isAddingStore = ref(false);
 const error = ref<string | null>(null);
@@ -52,7 +48,7 @@ const customIcon = L.icon({
 
 function toggleAddingStore(): void {
   // Check if user is authenticated before allowing to add a store
-  if (!props.isAuthenticated) {
+  if (!isAuthenticated.value) {
     router.push('/login?redirect=/');
     return;
   }
@@ -66,13 +62,16 @@ function toggleAddingStore(): void {
 
 // Handle rating button click for non-authenticated users
 function handleRateClick(storeId: string, event: Event): void {
-  if (!props.isAuthenticated) {
+  if (!isAuthenticated.value) {
     event.preventDefault();
     router.push(`/login?redirect=/rate/${storeId}`);
   }
 }
 
-async function getAddressFromCoordinates(lat: number, lng: number): Promise<string | null> {
+async function getAddressFromCoordinates(
+  lat: number,
+  lng: number,
+): Promise<string | null> {
   try {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
@@ -127,7 +126,9 @@ async function handleMapClick(e: L.LeafletMouseEvent): Promise<void> {
     if (form) {
       form.addEventListener('submit', async (event: Event) => {
         event.preventDefault();
-        const nameInput = document.getElementById('storeName') as HTMLInputElement;
+        const nameInput = document.getElementById(
+          'storeName',
+        ) as HTMLInputElement;
 
         if (!nameInput?.value.trim()) {
           error.value = 'Store name is required.';
@@ -191,7 +192,9 @@ onMounted(() => {
 
         locations.value = newStores.map((store: DocumentData) => {
           const ratingInfo = averageRatings.value?.get(store.id);
-          const averageRating = ratingInfo ? ratingInfo.total / ratingInfo.count : 0;
+          const averageRating = ratingInfo
+            ? ratingInfo.total / ratingInfo.count
+            : 0;
           const totalRatings = ratingInfo?.count || 0;
 
           return {
@@ -216,7 +219,8 @@ onMounted(() => {
               <div class="p-4">
                 <h3 class="font-bold text-lg mb-1">${store.name}</h3>
                 <p class="text-gray-600 mb-2">${store.address}</p>
-                ${store.totalRatings! > 0
+                ${
+                  store.totalRatings! > 0
                     ? `<p class="text-amber-600 font-semibold mb-3">
                       ${store.averageRating?.toFixed(1)}/10
                       <span class="text-gray-500 text-sm font-normal">(${store.totalRatings} rating${store.totalRatings !== 1 ? 's' : ''})</span>
@@ -254,11 +258,13 @@ onMounted(() => {
             // Add event listener for rate button after popup is opened
             marker.on('popupopen', () => {
               setTimeout(() => {
-                const rateButton = document.getElementById(`rate-button-${store.id}`);
+                const rateButton = document.getElementById(
+                  `rate-button-${store.id}`,
+                );
                 if (rateButton) {
                   rateButton.addEventListener('click', (e) => {
                     handleRateClick(store.id, e);
-                    if (props.isAuthenticated) {
+                    if (isAuthenticated.value) {
                       window.location.href = `/rate/${store.id}`;
                     }
                   });
@@ -299,9 +305,11 @@ onMounted(() => {
     // Add zoom controls in a better position
     if (map) {
       map.zoomControl.remove();
-      L.control.zoom({
-        position: 'bottomright',
-      }).addTo(map);
+      L.control
+        .zoom({
+          position: 'bottomright',
+        })
+        .addTo(map);
     }
   }
   catch (e) {
@@ -339,7 +347,10 @@ onUnmounted(() => {
         <p class="text-sm text-gray-600">
           {{ locations.length }} locations found
         </p>
-        <span v-if="isLoadingLocation" class="text-sm text-amber-600 flex items-center space-x-2">
+        <span
+          v-if="isLoadingLocation"
+          class="text-sm text-amber-600 flex items-center space-x-2"
+        >
           <span class="loading-dot" />
           <span>Finding your location...</span>
         </span>
@@ -351,12 +362,19 @@ onUnmounted(() => {
       </div>
     </div>
   </div>
-  <div class="relative h-[600px] w-full rounded-lg overflow-hidden shadow-lg">
+  <div
+    class="relative min-h-[600px] h-[70vh] w-full rounded-lg overflow-hidden shadow-lg"
+  >
     <div id="map" class="absolute inset-0" />
 
     <!-- Loading overlay - replaced with a more subtle indicator -->
-    <div v-if="isLoading" class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[2000]">
-      <div class="bg-white px-4 py-2 rounded-full shadow-lg flex items-center space-x-2">
+    <div
+      v-if="isLoading"
+      class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[2000]"
+    >
+      <div
+        class="bg-white px-4 py-2 rounded-full shadow-lg flex items-center space-x-2"
+      >
         <span class="loading-dot" />
         <span class="text-sm text-gray-700">Loading location details...</span>
       </div>
@@ -365,10 +383,16 @@ onUnmounted(() => {
     <div class="absolute top-4 right-4 z-[1000] space-y-2">
       <button
         class="w-full bg-white px-4 py-2 rounded-lg shadow-md text-sm font-medium flex items-center justify-center space-x-2"
-        :class="isAddingStore ? 'bg-amber-100 text-amber-700' : 'text-gray-700 hover:bg-gray-50'"
+        :class="
+          isAddingStore
+            ? 'bg-amber-100 text-amber-700'
+            : 'text-gray-700 hover:bg-gray-50'
+        "
         @click="toggleAddingStore"
       >
-        <span>{{ isAddingStore ? 'Cancel Adding Store' : 'Add New Store' }}</span>
+        <span>{{
+          isAddingStore ? 'Cancel Adding Store' : 'Add New Store'
+        }}</span>
         <span v-if="isAddingStore" class="text-xs">(Click on map to add)</span>
       </button>
 

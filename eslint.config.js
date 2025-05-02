@@ -27,4 +27,6 @@ export default antfu({
     },
   },
   ignores: ['functions/**/*'],
+}).append({
+  ignores: ['functions/**/*'],
 });

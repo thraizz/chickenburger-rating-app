@@ -1,4 +1,4 @@
-import { sentryVitePlugin } from "@sentry/vite-plugin";
+import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { fileURLToPath, URL } from 'node:url';
 
 import tailwindcss from '@tailwindcss/vite';
@@ -12,8 +12,8 @@ import Layouts from 'vite-plugin-vue-layouts-next';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [VueRouter(), vue(), Layouts(), tailwindcss(), sentryVitePlugin({
-    org: "aron-schuler-it-services",
-    project: "chickenburger-scout"
+    org: 'aron-schuler-it-services',
+    project: 'chickenburger-scout',
   })],
 
   resolve: {
@@ -23,6 +23,6 @@ export default defineConfig({
   },
 
   build: {
-    sourcemap: true
-  }
+    sourcemap: true,
+  },
 });

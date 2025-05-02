@@ -26,10 +26,12 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex flex-col">
+  <div
+    class="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex flex-col"
+  >
     <!-- Navigation Bar -->
     <nav class="bg-white shadow-lg">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center">
             <router-link to="/" class="flex items-center">
@@ -62,7 +64,9 @@ async function handleLogout() {
                 @click="isUserMenuOpen = !isUserMenuOpen"
               >
                 <span class="sr-only">Open user menu</span>
-                <div class="h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center text-white">
+                <div
+                  class="h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center text-white"
+                >
                   {{ currentUser.email?.[0].toUpperCase() }}
                 </div>
               </button>
@@ -109,23 +113,7 @@ async function handleLogout() {
     </nav>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- <router-view v-slot="{ Component }">
-        <transition
-          name="page"
-          mode="out-in"
-          enter-active-class="transform transition-all duration-300 ease-out"
-          enter-from-class="opacity-0 translate-y-4"
-          enter-to-class="opacity-100 translate-y-0"
-          leave-active-class="transform transition-all duration-300 ease-in"
-          leave-from-class="opacity-100 translate-y-0"
-          leave-to-class="opacity-0 -translate-y-4"
-        >
-          <div :key="$route.fullPath">
-            <component :is="Component" />
-          </div>
-        </transition>
-      </router-view> -->
+    <main class="max-w-screen mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <router-view />
     </main>
 
